@@ -25,5 +25,13 @@ namespace Hotel.Controllers
             var users = _userService.GetUsers();
             return Ok(users);
         }
+
+        [HttpGet]
+        [Route("Reservations")]
+        public IActionResult GetReservations()
+        {
+            var reservations = _userService.GetReservations(User.Identity.Name);
+            return Ok(reservations);
+        }
     }
 }

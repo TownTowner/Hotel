@@ -23,10 +23,35 @@ namespace Hotel.Core
             return user;
         }
 
-        public List<User> GetUsers()
+        public IList<User> GetUsers()
         {
             var users = _dbContext.Users.ToList();
             return users;
+        }
+
+        public object GetUser(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IList<Reservation> GetReservations(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            var user = FindByEmail(name);
+            if (user == null)
+                return null;
+
+            var reservations = _dbContext.Reservations.Where(r => user.UserType == UserType.Employee ? true : r.GuestId == user.Id).ToList();
+            return reservations;
+        }
+
+        public async Task<int> CreateUserAsync(User newUser, string password)
+        {
+            newUser.Password = password;
+            _dbContext.Users.Add(newUser);
+            return await _dbContext.SaveChangesAsync();
         }
 
         public void DbSeed()
@@ -42,14 +67,5 @@ namespace Hotel.Core
                 _dbContext.SaveChanges();
             }
         }
-
-        public async Task<int> CreateUserAsync(User newUser, string password)
-        {
-            newUser.Password = password;
-            _dbContext.Users.Add(newUser);
-            return await _dbContext.SaveChangesAsync();
-        }
-
-
     }
 }

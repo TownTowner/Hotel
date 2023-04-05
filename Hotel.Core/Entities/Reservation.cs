@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hotel.Core
 {
@@ -26,12 +27,22 @@ namespace Hotel.Core
     public class Reservation : EntityBase
     {
         /// <summary>
+        /// 客户 Id
+        /// </summary>
+        public int? GuestId { get; set; }
+        /// <summary>
         /// 客户
         /// </summary>
+        [ForeignKey("GuestId")]
         public virtual User Guest { get; set; }
+        /// <summary>
+        /// 桌号 Id
+        /// </summary>
+        public int? TableId { get; set; }
         /// <summary>
         /// 桌号
         /// </summary>
+        [ForeignKey("TableId")]
         public virtual Table Table { get; set; }
         /// <summary>
         /// 预定时间
