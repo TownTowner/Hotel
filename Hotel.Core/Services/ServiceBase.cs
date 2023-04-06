@@ -8,8 +8,8 @@ namespace Hotel.Core
 {
     public abstract class ServiceBase
     {
-        private HotelContext _db;
-        internal HotelContext Db
+        private HotelDbContext _db;
+        internal HotelDbContext Db
         {
             get
             {
@@ -23,9 +23,9 @@ namespace Hotel.Core
     public static class AppDbContextFactory
     {
         [ThreadStatic]
-        static HotelContext _dbInstance;
+        static HotelDbContext _dbInstance;
 
-        internal static HotelContext CreateDbContext()
+        internal static HotelDbContext CreateDbContext()
         {
             //if (_dbInstance == null)
             //    _dbInstance = new HotelContext();

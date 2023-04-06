@@ -3,9 +3,9 @@ using System;
 
 namespace Hotel.Core
 {
-    public class HotelContext : DbContext
+    public class HotelDbContext : DbContext
     {
-        public HotelContext(DbContextOptions options) : base(options)
+        public HotelDbContext(DbContextOptions options) : base(options)
         {
         }
 

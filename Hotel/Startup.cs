@@ -51,8 +51,9 @@ namespace Hotel
             services.AddScoped<UserService>();
             services.AddCors(option => option.AddPolicy("cors", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new[] { "http://localhost:3000" })));
 
-            services.AddDbContext<HotelContext>(options => options.UseInMemoryDatabase("Hilton"));
+            services.AddDbContext<HotelDbContext>(options => options.UseInMemoryDatabase("Hilton"));
             services.AddControllersWithViews();
+            services.AddHttpContextAccessor();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

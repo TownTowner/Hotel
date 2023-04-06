@@ -30,7 +30,8 @@ namespace Hotel.Controllers
         [Route("Reservations")]
         public IActionResult GetReservations()
         {
-            var reservations = _userService.GetReservations(User.Identity.Name);
+            var user = HttpContext.User;
+            var reservations = _userService.GetReservations();
             return Ok(reservations);
         }
     }
