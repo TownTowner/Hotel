@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -11,12 +10,14 @@ namespace Hotel.Core
     public class UserService : ServiceBase
     {
         private readonly HotelDbContext _dbContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _userId;
 
-        public UserService(HotelDbContext dbContext, IHttpContextAccessor httpContextAccessor)
+        public UserService(HotelDbContext dbContext, string userId)
         {
             _dbContext = dbContext;
-            _httpContextAccessor = httpContextAccessor;
+            //_httpContextAccessor = httpContextAccessor;
+            _userId = userId;
         }
 
         private User _user;
@@ -26,10 +27,10 @@ namespace Hotel.Core
             {
                 if (_user == null)
                 {
-                    var userId = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-                    _user = string.IsNullOrEmpty(userId) ? null : _dbContext.Users.Find(int.Parse(userId));
+                    //var userId = _httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+                    _user = string.IsNullOrEmpty(_userId) ? null : _dbContext.Users.Find(int.Parse(_userId));
                     if (_user == null)
-                        throw new Exception("can't find user with id:" + userId);
+                        throw new Exception("can't find user with id:" + _userId);
                 }
                 return _user;
             }
@@ -65,10 +66,11 @@ namespace Hotel.Core
             return reservations;
         }
 
-        public IList<Reservation> GetReservations(User user = null)
+        public IList<Reservation> GetReservations(User user)
         {
             if (user == null)
-                return null;
+                return Array.Empty<Reservation>(); 
+
             var reservations = _dbContext.Reservations.Where(r => user.UserType == UserType.Employee ? true : r.GuestId == user.Id).ToList();
             return reservations;
         }

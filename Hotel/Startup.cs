@@ -7,10 +7,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Hotel.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Hotel.Configuration;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Hotel
 {
@@ -48,12 +50,18 @@ namespace Hotel
             //.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
             //    options => Configuration.Bind("CookieSettings", options))
 
-            services.AddScoped<UserService>();
             services.AddCors(option => option.AddPolicy("cors", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new[] { "http://localhost:3000" })));
 
             services.AddDbContext<HotelDbContext>(options => options.UseInMemoryDatabase("Hilton"));
             services.AddControllersWithViews();
             services.AddHttpContextAccessor();
+            services.AddScoped(sp =>
+            {
+                var dbContext = sp.GetRequiredService<HotelDbContext>();
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                var userId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+                return new UserService(dbContext, userId);
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

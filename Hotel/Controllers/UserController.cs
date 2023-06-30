@@ -1,10 +1,6 @@
 ﻿using Hotel.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Hotel.Controllers
 {
@@ -14,7 +10,7 @@ namespace Hotel.Controllers
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
-
+        
         public UserController(UserService userService)
         {
             _userService = userService;
