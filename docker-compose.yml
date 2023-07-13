@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  hotel:
+    image: ${DOCKER_REGISTRY-}hotel
+    build:
+      context: .
+      dockerfile: Hotel/Dockerfile
