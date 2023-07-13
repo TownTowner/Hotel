@@ -59,7 +59,7 @@ namespace Hotel
             {
                 var dbContext = sp.GetRequiredService<HotelDbContext>();
                 var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                var userId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+                var userId = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
                 return new UserService(dbContext, userId);
             });
 
