@@ -51,7 +51,7 @@ namespace Hotel
             //    options => Configuration.Bind("CookieSettings", options))
 
             services.AddCors(option => option.AddPolicy("cors", policy => policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins(new[] { "http://localhost:3000" })));
-
+            
             services.AddDbContext<HotelDbContext>(options => options.UseInMemoryDatabase("Hilton"));
             services.AddControllersWithViews();
             services.AddHttpContextAccessor();
@@ -73,6 +73,11 @@ namespace Hotel
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            //env.IsProduction(); //是否生产环境,ASPNETCORE_ENVIRONMENT环境变量值是否是Production
+            //env.IsEnvironment("ok");//ASPNETCORE_ENVIRONMENT环境变量值是否是ok
+            //env.IsStaging();//是否测试环境
+
+            //是否开发环境,ASPNETCORE_ENVIRONMENT环境变量值是否是Development
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

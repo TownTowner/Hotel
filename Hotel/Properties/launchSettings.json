@@ -7,7 +7,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Project1": {
+    "Hotel": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

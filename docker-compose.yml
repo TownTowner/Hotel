@@ -1,8 +1,55 @@
 version: '3.4'
+name: hotel-compose-d # doesn't work here when using vs to run  Docker Compose
 
 services:
+  elasticsearch:
+    container_name: hotel-els
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/datafile
+    environment:
+      - xpack.monitoring.enabled=true
+      - xpack.watcher.enabled=false
+      - xpack.security.enabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=elastic #password
+    networks:
+      - elastcinetwork
+
+  kibana:
+    container_name: hotel-kibana
+    image: docker.elastic.co/kibana/kibana:7.17.10
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://localhost:9200
+      - i18n.locale=zh-CN
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=elastic #elastic password
+    networks:
+      - elastcinetwork
+
   hotel:
     image: ${DOCKER_REGISTRY-}hotel
+    container_name: hotel-1
     build:
       context: .
       dockerfile: Hotel/Dockerfile
+      args: 
+        - "--network=host"
+    depends_on:
+      - kibana
+    networks:
+      - elastcinetwork
+
+networks:
+  elastcinetwork:
+    driver: bridge
+
+volumes:
+  elasticsearch-data:
