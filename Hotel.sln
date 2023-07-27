@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hotel.Core", "Hotel.Core\Hotel.Core.csproj", "{FEDB2663-9311-4D79-9170-CA3122881D81}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{556D883B-F0CD-464D-9E12-587905CB8702}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DA6968EE-ACA8-4CE0-9657-9BE0E1396183}"
 EndProject
