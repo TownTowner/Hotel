@@ -12,10 +12,11 @@ services:
     environment:
       - xpack.monitoring.enabled=true
       - xpack.watcher.enabled=false
-      - xpack.security.enabled=true
+      #- xpack.security.enabled=true
+      #- xpack.security.transport.ssl.enabled=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
-      - ELASTIC_PASSWORD=elastic #password
+      #- ELASTIC_PASSWORD=elastic #password
     networks:
       - elastcinetwork
 
@@ -29,27 +30,37 @@ services:
     environment:
       - ELASTICSEARCH_URL=http://localhost:9200
       - i18n.locale=zh-CN
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=elastic #elastic password
+      #- ELASTICSEARCH_USERNAME=elastic
+      #- ELASTICSEARCH_PASSWORD=elastic #elastic password
     networks:
       - elastcinetwork
 
   hotel:
     image: ${DOCKER_REGISTRY-}hotel
-    container_name: hotel-1
+    container_name: hotel-2
+    ports:
+      - 9527:80
     build:
       context: .
       dockerfile: Hotel/Dockerfile
-      args: 
-        - "--network=host"
+      #args: 
+      #  - "--network=host"
     depends_on:
       - kibana
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    #network_mode: host
+    #dns: 8.8.8.8 # single string value
+    #dns: # list 
+    # - 8.8.8.8
+    # - 1.1.1.1
     networks:
       - elastcinetwork
 
 networks:
   elastcinetwork:
     driver: bridge
+  
 
 volumes:
   elasticsearch-data:

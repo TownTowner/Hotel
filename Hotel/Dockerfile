@@ -14,6 +14,7 @@ WORKDIR "/src/Hotel"
 RUN dotnet build "Hotel.csproj" -c Release -o /app/build
 
 FROM build AS publish
+ENV ASPNETCORE_ENVIRONMENT=Production
 RUN dotnet publish "Hotel.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 #React build
@@ -29,6 +30,8 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
 # install and cache app dependencies
 COPY ["Hotel/ClientApp/package.json", "/usr/src/app/package.json"]
+#有时会报错npm 有可用升级
+RUN npm install -g npm
 RUN npm install
 #RUN npm install -g @angular/cli@1.7.0 --unsafe
 
@@ -36,7 +39,6 @@ RUN npm install
 COPY ["Hotel/ClientApp/.","/usr/src/app"]
 
 RUN npm run build
-
 #End React build
 
 
