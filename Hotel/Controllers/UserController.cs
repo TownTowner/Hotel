@@ -1,4 +1,5 @@
 ﻿using Hotel.Core;
+using Hotel.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ namespace Hotel.Controllers
         {
             _logger.LogInformation("User Get - this is a nice message to test the logs", DateTime.UtcNow);
             var users = _userService.GetUsers();
-            return Ok(users);
+            return Ok(CommonResponse.Create(users));
         }
 
         [HttpGet]
@@ -34,7 +35,7 @@ namespace Hotel.Controllers
             _logger.LogInformation("User GetReservations - this is a nice message to test the logs", DateTime.UtcNow);
             var user = HttpContext.User;
             var reservations = _userService.GetReservations();
-            return Ok(reservations);
+            return Ok(CommonResponse.Create(reservations));
         }
     }
 }

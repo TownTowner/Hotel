@@ -33,17 +33,15 @@ namespace Hotel.Controllers
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] UserRegistration user)
         {
+            var response = AuthResponse.Create();
             // 检查传入请求是否有效
             if (ModelState.IsValid)
             {
                 var existingUser = _userService.FindByEmail(user.Email);
                 if (existingUser != null)
                 {
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Errors = new List<string>() { "Email already in use" },
-                        Success = false
-                    });
+                    response.FailAndError("Email already in use");
+                    return BadRequest(response);
                 }
 
                 var newUser = new User() { Email = user.Email, Name = user.Username, CreatedTime = DateTime.Now };
@@ -53,45 +51,32 @@ namespace Hotel.Controllers
                 {
                     //var jwtToken = GenerateJwtToken(newUser);
                     var jwtToken = BuildToken(newUser);
-
-                    return Ok(new RegistrationResponse()
-                    {
-                        Success = true,
-                        Token = jwtToken
-                    });
+                    response.Successed().Fill(jwtToken);
+                    return Ok(response);
                 }
                 else
                 {
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Errors = new List<string> { "Register error" },
-                        Success = false
-                    });
+                    response.FailAndError("Register error");
+                    return BadRequest(response);
                 }
             }
 
-            return BadRequest(new RegistrationResponse()
-            {
-                Errors = new List<string>() { "Invalid payload" },
-                Success = false
-            });
+            response.FailAndError("Invalid payload");
+            return BadRequest(response);
         }
 
         [HttpPost]
         [Route("Login")]
         public IActionResult Login([FromBody] UserLogin user)
         {
+            var response = AuthResponse.Create();
             if (ModelState.IsValid)
             {
                 var existingUser = _userService.FindByEmail(user.Email);
                 if (existingUser == null)
                 {
-                    // 出于安全原因，我们不想透露太多关于请求失败的信息
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Errors = new List<string>() { "Invalid login request" },
-                        Success = false
-                    });
+                    response.FailAndError("Invalid login request");
+                    return BadRequest(response);
                 }
 
                 // 现在我们需要检查用户是否输入了正确的密码
@@ -99,29 +84,19 @@ namespace Hotel.Controllers
                 var isCorrect = existingUser.Password == user.Password;
                 if (!isCorrect)
                 {
-                    // 出于安全原因，我们不想透露太多关于请求失败的信息
-                    return BadRequest(new RegistrationResponse()
-                    {
-                        Errors = new List<string>() { "Invalid login request" },
-                        Success = false
-                    });
+                    response.FailAndError("Invalid login request");
+                    return BadRequest(response);
                 }
 
                 //var jwtToken = GenerateJwtToken(existingUser);
                 var jwtToken = BuildToken(existingUser);
+                response.Successed().Fill(jwtToken);
 
-                return Ok(new RegistrationResponse()
-                {
-                    Success = true,
-                    Token = jwtToken
-                });
+                return Ok(response);
             }
 
-            return BadRequest(new RegistrationResponse()
-            {
-                Errors = new List<string>() { "Invalid payload" },
-                Success = false
-            });
+            response.FailAndError("Invalid payload");
+            return BadRequest(response);
         }
 
 

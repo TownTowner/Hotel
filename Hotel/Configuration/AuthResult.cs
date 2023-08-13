@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace Hotel.Configuration
 {
-    public class AuthResult
+    public class AuthResult : BaseResult
     {
         public string Token { get; set; }
-        public bool Success { get; set; }
-        public List<string> Errors { get; set; }
     }
 }
