@@ -20,6 +20,7 @@
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Sinks.Elasticsearch" Version="8.4.1" />
+    <PackageReference Include="SkyAPM.Agent.AspNetCore" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,9 +34,10 @@
     <ProjectReference Include="..\Hotel.Core\Hotel.Core.csproj" />
   </ItemGroup>
 
+  <!-- Ensure Node.js is installed -->
+  <!--Maybe you should disable this pharse when you docker compose-->
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
-    <!-- Ensure Node.js is installed -->
-    <Exec Command="node --version" ContinueOnError="true">
+    <Exec Command="node -v" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
     </Exec>
     <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />

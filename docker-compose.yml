@@ -2,9 +2,10 @@ version: '3.4'
 name: hotel-compose-d # doesn't work here when using vs to run  Docker Compose
 
 services:
+  #---------------ELK-Kibana-------------
   elasticsearch:
-    container_name: hotel-els
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    container_name: elk-els
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
     ports:
       - 9200:9200
     volumes:
@@ -18,26 +19,27 @@ services:
       - discovery.type=single-node
       #- ELASTIC_PASSWORD=elastic #password
     networks:
-      - elastcinetwork
+      - elasticnetwork
 
   kibana:
-    container_name: hotel-kibana
-    image: docker.elastic.co/kibana/kibana:7.17.10
+    container_name: elk-kibana
+    image: docker.elastic.co/kibana/kibana:${ES_KIBANA_VERSION}
     ports:
       - 5601:5601
     depends_on:
       - elasticsearch
     environment:
-      - ELASTICSEARCH_URL=http://localhost:9200
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       - i18n.locale=zh-CN
       #- ELASTICSEARCH_USERNAME=elastic
       #- ELASTICSEARCH_PASSWORD=elastic #elastic password
     networks:
-      - elastcinetwork
+      - elasticnetwork
+  #---------------ELK-Kibana-------------
 
   hotel:
     image: ${DOCKER_REGISTRY-}hotel
-    container_name: hotel-2
+    container_name: hotel
     ports:
       - 9527:80
     build:
@@ -46,19 +48,97 @@ services:
       #args: 
       #  - "--network=host"
     depends_on:
-      - kibana
+       kibana:
+         condition: service_started
+         required: false
+       sw-oap:
+         condition: service_healthy
+         required: false
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore
     #network_mode: host
     #dns: 8.8.8.8 # single string value
     #dns: # list 
     # - 8.8.8.8
     # - 1.1.1.1
     networks:
-      - elastcinetwork
+      - elasticnetwork
+
+  #---------------SkyWalking-------------
+  #https://github.com/apache/skywalking/blob/master/docker/docker-compose.yml
+  sw-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION}
+    container_name: sw-elasticsearch
+    ports:
+      - "9201:9200"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1" ] #image inner cmd using port 9200
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - elasticnetwork
+
+  sw-oap:
+    image: ${OAP_IMAGE}
+    container_name: sw-oap
+    depends_on:
+      sw-elasticsearch:
+        condition: service_healthy
+    links:
+      - sw-elasticsearch
+    ports:
+      - "11800:11800"
+      - "12800:12800"
+    healthcheck:
+      ##https://github.com/apache/skywalking/blob/master/test/e2e-v2/script/docker-compose/base-compose.yml
+      #test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/11800"]
+      test: [ "CMD-SHELL", "/skywalking/bin/swctl ch" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    #volumes:
+    #  - ./../prepare/setup-oap/download-mysql.sh:/download-mysql.sh
+    #  - ./../prepare/setup-oap/log4j2.xml:/skywalking/config/log4j2.xml
+    environment:
+      SW_STORAGE: elasticsearch 
+      SW_STORAGE_ES_CLUSTER_NODES: sw-elasticsearch:9200
+      SW_HEALTH_CHECKER: default
+      SW_TELEMETRY: prometheus
+      JAVA_OPTS: "-Xms2048m -Xmx2048m"
+    networks:
+      - elasticnetwork
+
+  sw-ui:
+    image: ${UI_IMAGE}
+    container_name: sw-ui
+    depends_on:
+      sw-oap:
+        condition: service_healthy
+    links:
+      - sw-oap
+    ports:
+      - "8087:8080"
+    environment:
+      SW_OAP_ADDRESS: http://sw-oap:12800
+      SW_ZIPKIN_ADDRESS: http://sw-oap:9412
+    networks:
+      - elasticnetwork
+  #---------------SkyWalking-------------
 
 networks:
-  elastcinetwork:
+  elasticnetwork:
     driver: bridge
   
 
