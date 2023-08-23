@@ -2,6 +2,7 @@ using Hotel.Core;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Prometheus.DotNetRuntime;
 
 namespace Hotel
 {
@@ -9,8 +10,19 @@ namespace Hotel
     {
         public static void Main(string[] args)
         {
+            DotNetRuntimeStatsBuilder
+                .Customize()
+                //每5个事件个采集一个
+                .WithContentionStats(sampleRate: SampleEvery.FiveEvents)
+                //每10事件采集一个
+                .WithJitStats(sampleRate: SampleEvery.TenEvents)
+                ////每100事件采集一个
+                //.WithThreadPoolSchedulingStats(sampleRate: SampleEvery.HundredEvents)
+                .WithThreadPoolStats()
+                .WithGcStats()
+                .StartCollecting();
             //CreateHostBuilder(args).Build().Run();
-            IHost webHost = CreateHostBuilder(args).Build();
+            IHost webHost = CreateHostBuilder(args).UseSerilogHotel().Build();
 
             using var scope = webHost.Services.CreateScope();
             var userService = scope.ServiceProvider.GetRequiredService<UserService>();
@@ -21,7 +33,6 @@ namespace Hotel
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-            .UseSerilogHotel()
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();

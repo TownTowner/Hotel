@@ -16,6 +16,8 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.19" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.19" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="prometheus-net.DotNetRuntime" Version="4.4.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
@@ -35,7 +37,7 @@
   </ItemGroup>
 
   <!-- Ensure Node.js is installed -->
-  <!--Maybe you should disable this pharse when you docker compose-->
+  <!--When using Docker, maybe you should disable this Target pharse when you docker compose with ASPNETCORE_ENVIRONMENT = Development-->
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
     <Exec Command="node -v" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />

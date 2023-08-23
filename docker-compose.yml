@@ -50,10 +50,10 @@ services:
     depends_on:
        kibana:
          condition: service_started
-         required: false
+         #required: false # not implementation for now
        sw-oap:
          condition: service_healthy
-         required: false
+         #required: false # not implementation for now
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore
@@ -137,10 +137,63 @@ services:
       - elasticnetwork
   #---------------SkyWalking-------------
 
+  #---------------Prometheus+Grafana-------------
+  pg-prometheus:
+    image: docker.io/bitnami/prometheus:2
+    container_name: pg-prometheus
+    ports:
+      - '9090:9090'
+    #configs:
+    #  - source: prometheus_config
+    #    target: /opt/bitnami/prometheus/conf/prometheus.yml
+    depends_on:
+      - hotel
+    volumes:
+      - prometheus-data:/opt/bitnami/prometheus/data
+      - ./Hotel/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+    networks:
+      - elasticnetwork
+  #cadvisor:
+  #  image: gcr.io/cadvisor/cadvisor:latest
+  #  container_name: cadvisor
+  #  ports:
+  #  - 8077:8080
+  #  volumes:
+  #  - /:/rootfs:ro
+  #  - /var/run:/var/run:rw
+  #  - /sys:/sys:ro
+  #  - /var/lib/docker/:/var/lib/docker:ro
+  pg-grafana:
+    image : docker.io/bitnami/grafana:10
+    container_name: pg-grafana
+    depends_on: 
+      - pg-prometheus
+    ports:
+      - "3003:3000"
+    environment:
+      - 'GF_SECURITY_ADMIN_PASSWORD=bitnami'
+      - 'GF_USERS_ALLOW_SIGN_UP=false'
+    volumes:
+      - grafana-data:/opt/bitnami/grafana/data
+      #- ./grafana/data/:/var/lib/grafana
+      #- ./grafana/provisioning/:/etc/grafana/provisioning/
+    networks:
+      - elasticnetwork
+  #---------------Prometheus+Grafana-------------
+
+configs:
+  prometheus_config:
+    file: ./prometheus.yml
+
 networks:
   elasticnetwork:
     driver: bridge
+  #host:
+  #  name: host
+  #  external: true
   
-
+  
 volumes:
   elasticsearch-data:
+  prometheus-data:
+  grafana-data:
