@@ -153,16 +153,19 @@ services:
       - ./Hotel/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
     networks:
       - elasticnetwork
-  #cadvisor:
-  #  image: gcr.io/cadvisor/cadvisor:latest
-  #  container_name: cadvisor
-  #  ports:
-  #  - 8077:8080
-  #  volumes:
-  #  - /:/rootfs:ro
-  #  - /var/run:/var/run:rw
-  #  - /sys:/sys:ro
-  #  - /var/lib/docker/:/var/lib/docker:ro
+  pg-cadvisor:
+    #image: gcr.io/cadvisor/cadvisor:latest
+    image: gcmirrors/cadvisor:latest #https://mirrors.kb.cx/
+    container_name: pg-cadvisor
+    ports:
+      - 8077:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - elasticnetwork
   pg-grafana:
     image : docker.io/bitnami/grafana:10
     container_name: pg-grafana
@@ -175,6 +178,7 @@ services:
       - 'GF_USERS_ALLOW_SIGN_UP=false'
     volumes:
       - grafana-data:/opt/bitnami/grafana/data
+      # optional config : https://github.com/djluck/prometheus-net.DotNetRuntime/blob/master/examples/docker-compose.yml#L42
       #- ./grafana/data/:/var/lib/grafana
       #- ./grafana/provisioning/:/etc/grafana/provisioning/
     networks:
