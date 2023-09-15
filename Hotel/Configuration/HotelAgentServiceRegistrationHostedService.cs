@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Linq;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Hotel.Configuration;
 
@@ -18,23 +19,29 @@ public class HotelAgentServiceRegistrationHostedService : IHostedService
     private readonly AgentServiceRegistration _serviceRegistration;
 
     private readonly IHostApplicationLifetime _lifetime;
+    private readonly ILogger _logger;
 
-    public HotelAgentServiceRegistrationHostedService(IConsulClient consulClient, AgentServiceRegistration serviceRegistration, IServer server, IHostApplicationLifetime lifetime)
+    public HotelAgentServiceRegistrationHostedService(IConsulClient consulClient, AgentServiceRegistration serviceRegistration,
+        IServer server, IHostApplicationLifetime lifetime, ILogger logger)
     {
         _consulClient = consulClient;
         _serviceRegistration = serviceRegistration;
         _server = server;
         _lifetime = lifetime;
+        _logger = logger;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
         _lifetime.ApplicationStarted.Register(async () =>
         {
-            //the address should called after application started
+            // the address should called after application started
+            // !! It will be get the container IP when you set your app in a container  !!
             var features = _server.Features.Get<IServerAddressesFeature>();
             var address = features.Addresses.FirstOrDefault();
             var uri = new Uri(address);
+
+            _logger.LogDebug("Detected IServerAddressesFeature address:" + address);
 
             if (string.IsNullOrEmpty(_serviceRegistration.Address))
             {

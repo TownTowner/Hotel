@@ -2,6 +2,28 @@ version: '3.4'
 name: hotel-compose-d # doesn't work here when using vs to run  Docker Compose
 
 services:
+  consul:
+    container_name: consul
+    image: hashicorp/consul:1.16.1
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:8500/ui/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - consul-data:/consul
+      #- ./consul/config:/consul/config
+      #- ./consul/data:/consul/data
+      #- ./consul/logs:/consul/logs
+    command:  "consul agent -server -bootstrap-expect=1 -client=0.0.0.0 -ui -bind='{{ GetPrivateIP }}' -data-dir=/consul/data -node=consul-node -datacenter=dc1 -log-level=debug -enable-script-checks=true -config-dir=/consul/config"
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - hotelnetwork
+
   #---------------ELK-Kibana-------------
   elasticsearch:
     container_name: elk-els
@@ -19,7 +41,7 @@ services:
       - discovery.type=single-node
       #- ELASTIC_PASSWORD=elastic #password
     networks:
-      - elasticnetwork
+      - hotelnetwork
 
   kibana:
     container_name: elk-kibana
@@ -34,7 +56,7 @@ services:
       #- ELASTICSEARCH_USERNAME=elastic
       #- ELASTICSEARCH_PASSWORD=elastic #elastic password
     networks:
-      - elasticnetwork
+      - hotelnetwork
   #---------------ELK-Kibana-------------
 
   hotel:
@@ -54,6 +76,8 @@ services:
        sw-oap:
          condition: service_healthy
          #required: false # not implementation for now
+       consul: 
+         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore
@@ -63,7 +87,7 @@ services:
     # - 8.8.8.8
     # - 1.1.1.1
     networks:
-      - elasticnetwork
+      - hotelnetwork
 
   #---------------SkyWalking-------------
   #https://github.com/apache/skywalking/blob/master/docker/docker-compose.yml
@@ -87,7 +111,7 @@ services:
         soft: -1
         hard: -1
     networks:
-      - elasticnetwork
+      - hotelnetwork
 
   sw-oap:
     image: ${OAP_IMAGE}
@@ -118,7 +142,7 @@ services:
       SW_TELEMETRY: prometheus
       JAVA_OPTS: "-Xms2048m -Xmx2048m"
     networks:
-      - elasticnetwork
+      - hotelnetwork
 
   sw-ui:
     image: ${UI_IMAGE}
@@ -134,7 +158,7 @@ services:
       SW_OAP_ADDRESS: http://sw-oap:12800
       SW_ZIPKIN_ADDRESS: http://sw-oap:9412
     networks:
-      - elasticnetwork
+      - hotelnetwork
   #---------------SkyWalking-------------
 
   #---------------Prometheus+Grafana-------------
@@ -152,7 +176,7 @@ services:
       - prometheus-data:/opt/bitnami/prometheus/data
       - ./Hotel/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
     networks:
-      - elasticnetwork
+      - hotelnetwork
   pg-cadvisor:
     #image: gcr.io/cadvisor/cadvisor:latest
     image: gcmirrors/cadvisor:latest #https://mirrors.kb.cx/
@@ -165,7 +189,7 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - elasticnetwork
+      - hotelnetwork
   pg-grafana:
     image : docker.io/bitnami/grafana:10
     container_name: pg-grafana
@@ -182,7 +206,7 @@ services:
       #- ./grafana/data/:/var/lib/grafana
       #- ./grafana/provisioning/:/etc/grafana/provisioning/
     networks:
-      - elasticnetwork
+      - hotelnetwork
   #---------------Prometheus+Grafana-------------
 
 configs:
@@ -190,7 +214,7 @@ configs:
     file: ./prometheus.yml
 
 networks:
-  elasticnetwork:
+  hotelnetwork:
     driver: bridge
   #host:
   #  name: host
@@ -201,3 +225,4 @@ volumes:
   elasticsearch-data:
   prometheus-data:
   grafana-data:
+  consul-data: 
