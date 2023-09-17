@@ -19,10 +19,11 @@ public class HotelAgentServiceRegistrationHostedService : IHostedService
     private readonly AgentServiceRegistration _serviceRegistration;
 
     private readonly IHostApplicationLifetime _lifetime;
-    private readonly ILogger _logger;
+    private readonly ILogger<HotelAgentServiceRegistrationHostedService> _logger;
 
     public HotelAgentServiceRegistrationHostedService(IConsulClient consulClient, AgentServiceRegistration serviceRegistration,
-        IServer server, IHostApplicationLifetime lifetime, ILogger logger)
+        IServer server, IHostApplicationLifetime lifetime,
+        ILogger<HotelAgentServiceRegistrationHostedService> logger)
     {
         _consulClient = consulClient;
         _serviceRegistration = serviceRegistration;
@@ -36,11 +37,12 @@ public class HotelAgentServiceRegistrationHostedService : IHostedService
         _lifetime.ApplicationStarted.Register(async () =>
         {
             // the address should called after application started
-            // !! It will be get the container IP when you set your app in a container  !!
+            // --------- Warnning !! It will be get the container IP when you set your app in a container  !! --------------
             var features = _server.Features.Get<IServerAddressesFeature>();
             var address = features.Addresses.FirstOrDefault();
             var uri = new Uri(address);
 
+            //Detected IServerAddressesFeature address:http://[::]:80, Port in the Dockerfile
             _logger.LogDebug("Detected IServerAddressesFeature address:" + address);
 
             if (string.IsNullOrEmpty(_serviceRegistration.Address))
@@ -48,20 +50,19 @@ public class HotelAgentServiceRegistrationHostedService : IHostedService
                 if ((_serviceRegistration.ID + "").EndsWith(uri.Authority) == false)
                     _serviceRegistration.ID += "-" + uri.Authority;
                 _serviceRegistration.Address = uri.Host;
-                _serviceRegistration.Port = uri.Port;
-
-                if ((_serviceRegistration.Checks?.Any() ?? false) == false)
+                _serviceRegistration.Port = uri.Port;   
+            }
+            if ((_serviceRegistration.Checks?.Any() ?? false) == false)
+            {
+                //心跳检测设置
+                var httpCheck = new AgentServiceCheck()
                 {
-                    //心跳检测设置
-                    var httpCheck = new AgentServiceCheck()
-                    {
-                        DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(60), //心跳检测失败多久后注销
-                        Interval = TimeSpan.FromSeconds(10), //间隔多久心跳检测一次
-                        HTTP = $"{uri.Scheme}://{uri.Authority}/health", //心跳检查地址，本服务提供的地址
-                        Timeout = TimeSpan.FromSeconds(5)  //心跳检测超时时间
-                    };
-                    _serviceRegistration.Checks = new[] { httpCheck };
-                }
+                    DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(60), //心跳检测失败多久后注销
+                    Interval = TimeSpan.FromSeconds(10), //间隔多久心跳检测一次
+                    HTTP = $"{uri.Scheme}://{uri.Authority}/health", //心跳检查地址，本服务提供的地址
+                    Timeout = TimeSpan.FromSeconds(5)  //心跳检测超时时间
+                };
+                _serviceRegistration.Checks = new[] { httpCheck };
             }
 
             await _consulClient.Agent.ServiceRegister(_serviceRegistration, cancellationToken);
