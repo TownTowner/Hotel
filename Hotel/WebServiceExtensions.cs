@@ -23,7 +23,7 @@ public static class WebServiceExtensions
             var serviceId = "hotel-web-service-v1-" + hostname + "-" + uri.Authority;
             var logger = sp.GetRequiredService<ILogger<Program>>();
 
-            logger.LogError($"{uri.Scheme}://{uri.Authority}/health");
+            logger.LogInformation($"Consul health url: {uri.Scheme}://{uri.Authority}/health");
 
             var agentServiceRegistration = new AgentServiceRegistration()
             {
@@ -39,6 +39,7 @@ public static class WebServiceExtensions
                         DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(60), //心跳检测失败多久后注销
                         Interval = TimeSpan.FromSeconds(10), //间隔多久心跳检测一次
                         HTTP = $"{uri.Scheme}://{uri.Host}:{uri.Port}/health", //心跳检查地址，本服务提供的地址
+                        //HTTP = $"localhost:3001/api/health", //心跳检查地址，本服务提供的地址
                         Timeout = TimeSpan.FromSeconds(5)  //心跳检测超时时间
                     }
                 }
