@@ -23,7 +23,7 @@ namespace Hotel.Controllers
 
         public IActionResult Index()
         {
-            _logger.LogInformation("User Get - this is a nice message to test the logs", DateTime.UtcNow);
+            _logger.LogInformation($"{DateTime.UtcNow}, User Get - this is a nice message to test the logs");
             var users = _userService.GetUsers();
             return Ok(CommonResponse.Create(users));
         }
@@ -32,7 +32,7 @@ namespace Hotel.Controllers
         [Route("Reservations")]
         public IActionResult GetReservations()
         {
-            _logger.LogInformation("User GetReservations - this is a nice message to test the logs", DateTime.UtcNow);
+            _logger.LogInformation($"{DateTime.UtcNow}, User GetReservations - this is a nice message to test the logs");
             var user = HttpContext.User;
             var reservations = _userService.GetReservations();
             return Ok(CommonResponse.Create(reservations));

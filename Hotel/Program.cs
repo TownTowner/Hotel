@@ -22,11 +22,16 @@ namespace Hotel
                 .WithGcStats()
                 .StartCollecting();
             //CreateHostBuilder(args).Build().Run();
-            IHost webHost = CreateHostBuilder(args).UseSerilogHotel().Build();
+            IHostBuilder hostBuilder = CreateHostBuilder(args).UseSerilogHotel();
+            IHost webHost = hostBuilder.Build();
 
-            using var scope = webHost.Services.CreateScope();
-            var userService = scope.ServiceProvider.GetRequiredService<UserService>();
-            userService.DbSeed();
+            //if(IWebHostEnvironment)
+            //    IHostingEnvironment env = svcs.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
+            using (var scope = webHost.Services.CreateScope())
+            {
+                var userService = scope.ServiceProvider.GetRequiredService<UserService>();
+                userService.DbSeed();
+            }
 
             webHost.Run();
         }

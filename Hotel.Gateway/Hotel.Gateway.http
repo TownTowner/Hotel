@@ -1,0 +1,11 @@
+@Hotel.Gateway_HostAddress = http://localhost:44329
+
+GET {{Hotel.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{Hotel.Gateway_HostAddress}}/oc/weatherforecast
+Accept: application/json
+
+###
