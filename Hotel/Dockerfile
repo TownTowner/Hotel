@@ -31,7 +31,7 @@ ENV PATH /usr/src/app/node_modules/.bin:$PATH
 # install and cache app dependencies
 COPY ["Hotel/ClientApp/package.json", "/usr/src/app/package.json"]
 #有时会报错npm 有可用升级
-RUN npm install -g npm
+RUN npm install -g npm@8.19.4
 RUN npm install
 #RUN npm install -g @angular/cli@1.7.0 --unsafe
 

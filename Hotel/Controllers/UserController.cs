@@ -37,5 +37,13 @@ namespace Hotel.Controllers
             var reservations = _userService.GetReservations();
             return Ok(CommonResponse.Create(reservations));
         }
+
+        [HttpGet]
+        [Route("test")]
+        [AllowAnonymous]
+        public IActionResult GetTest()
+        {
+            return Ok(new { now = DateTime.Now.ToString() });
+        }
     }
 }

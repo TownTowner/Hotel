@@ -2,10 +2,22 @@ version: '3.4'
 name: hotel-compose-d # doesn't work here when using vs to run  Docker Compose
 
 services:
-  consul:
-    container_name: consul
+  # consul-agent-1: &consul-agent
+  #   image: hashicorp/consul:1.16.1
+  #   container_name: consul-agent-1
+  #   networks: 
+  #     - network
+  #   command: "agent -retry-join consul-server-bootstrap -client 0.0.0.0"
+
+  # consul-agent-2:
+  #   container_name: consul-agent-2
+  #   <<: *consul-agent
+
+  # Consul Server node1
+  consul-server-1: &consul-server
+    container_name: consul-server-1
     image: hashicorp/consul:1.16.1
-    restart: always
+    # restart: always
     healthcheck:
       test: ["CMD-SHELL", "curl --silent --fail localhost:8500/ui/ || exit 1"]
       interval: 30s
@@ -13,14 +25,73 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      - consul-data:/consul
+      - consul-data-1:/consul
       #- ./consul/config:/consul/config
       #- ./consul/data:/consul/data
       #- ./consul/logs:/consul/logs
-    command:  "consul agent -server -bootstrap-expect=1 -client=0.0.0.0 -ui -bind='{{ GetPrivateIP }}' -data-dir=/consul/data -node=consul-node -datacenter=dc1 -log-level=debug -enable-script-checks=true -config-dir=/consul/config"
+    #command: consul agent -server -ui -bootstrap-expect=3 -bind='{{ GetPrivateIP }}' -client=0.0.0.0 -retry-join=consul-server-0
+    command:  consul agent -server -ui -bootstrap-expect=3 -bind='{{ GetPrivateIP }}' -client=0.0.0.0 -data-dir=/consul/data -config-dir=/consul/config -retry-join=consul-server-0
+    #-bootstrap-expect：must be 3 or 5 (odd number)
+    # ports:
+    #   - "8500:8500" # HTTP API and Web UI
+    #   - "8600:8600/udp" # DNS interface
+    #   - "8300:8300"  # Server RPC
+    #   - "8301:8301"  # Serf LAN
+    #   - "8302:8302"  # Serf WAN
+    networks:
+      - hotelnetwork
+
+  # Consul Server node2
+  consul-server-2:
+    container_name: consul-server-2
+    <<: *consul-server
+    volumes:
+      - consul-data-2:/consul
+
+  # Consul Server ui start node
+  consul-server-0:
+    container_name: consul-server-0
+    <<: *consul-server
     ports:
-      - "8500:8500"
-      - "8600:8600/udp"
+      - "8500:8500" # HTTP API and Web UI
+      - "8600:8600/udp" # DNS interface
+      - "8300:8300"  # Server RPC
+      - "8301:8301"  # Serf LAN
+      - "8302:8302"  # Serf WAN
+    command:  consul agent -server -ui -bootstrap-expect=3 -bind='{{ GetPrivateIP }}' -client=0.0.0.0 -data-dir=/consul/data -config-dir=/consul/config
+    volumes:
+      - consul-data-0:/consul
+
+  # Ocelot API gateway
+  ocelot-gateway:
+    # image: ocelotapi/ocelot:18.0.0
+    build: ./Hotel.Gateway
+    image: hotel-ocelot-gateway:1.0.0  # set image name and tag
+    container_name: ocelot-gateway
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Consul__Address=http://consul-server-0:8500  # direct to Consul client
+    depends_on:
+      - consul-server-0
+    volumes:
+      - ./Hotel.Gateway/OcelotConfig:/app/config  # mount Ocelot config
+    networks:
+      - hotelnetwork
+
+  # Nginx
+  nginx:
+    image: nginx:1.25
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - ocelot-gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d  # mount Nginx config
+      # - ./ssl-certs:/etc/ssl/certs  # SSL cert(optional)
     networks:
       - hotelnetwork
 
@@ -73,10 +144,10 @@ services:
        kibana:
          condition: service_started
          #required: false # not implementation for now
-       #sw-oap:
-       #  condition: service_healthy
+         #sw-oap:
+         #  condition: service_healthy
          #required: false # not implementation for now
-       consul: 
+       consul-server-0: 
          condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -174,7 +245,7 @@ services:
       - hotel
     volumes:
       - prometheus-data:/opt/bitnami/prometheus/data
-      - ./Hotel/prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
+      - ./prometheus.yml:/opt/bitnami/prometheus/conf/prometheus.yml
     networks:
       - hotelnetwork
   pg-cadvisor:
@@ -225,4 +296,10 @@ volumes:
   elasticsearch-data:
   prometheus-data:
   grafana-data:
-  consul-data: 
+  consul-data-1:
+    driver: local  
+  consul-data-2:
+    driver: local    
+  consul-data-0:
+    driver: local    
+    

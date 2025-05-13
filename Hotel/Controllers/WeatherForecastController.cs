@@ -28,7 +28,7 @@ namespace Hotel.Controllers
         public IEnumerable<WeatherForecast> Get()
         {
             _logger.LogInformation($"{DateTime.UtcNow}, WeatherForecast Get - this is a nice message to test the logs");
-
+            
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {

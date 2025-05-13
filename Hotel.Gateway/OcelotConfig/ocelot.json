@@ -1,0 +1,29 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/{url}",
+      "DownstreamScheme": "http",
+      //"DownstreamHostAndPorts": [ //localhost
+      //  {
+      //    "Host": "localhost",
+      //    "Port": 3001
+      //  }
+      //],
+      "UpstreamPathTemplate": "/oc/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Delete" ], // empty for all
+      "ServiceName": "hotel-web-service", //consul service name
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    }
+  ],
+  "GlobalConfiguration": {
+    //"BaseUrl": "https://localhost:5109",
+    "ServiceDiscoveryProvider": {
+      "Host": "consul-server-0",
+      "Port": 8500,
+      "Type": "Consul"
+    }
+  }
+}
