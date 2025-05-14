@@ -1,11 +1,16 @@
-@Hotel.Gateway_HostAddress = http://localhost:44329
+@Hotel.Gateway_HostAddress = http://localhost:5109
 
-GET {{Hotel.Gateway_HostAddress}}/weatherforecast/
+GET {{Hotel.Gateway_HostAddress}}/self/weatherforecast
 Accept: application/json
 
 ###
 
 GET {{Hotel.Gateway_HostAddress}}/oc/weatherforecast
+Accept: application/json
+
+###
+
+GET {{Hotel.Gateway_HostAddress}}/oc/user/test
 Accept: application/json
 
 ###

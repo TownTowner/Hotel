@@ -1,5 +1,13 @@
 {
   "profiles": {
+    "Local": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "{Scheme}://localhost:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",

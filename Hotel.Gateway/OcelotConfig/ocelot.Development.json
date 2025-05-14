@@ -1,4 +1,35 @@
 {
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/{url}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5109
+        }
+      ],
+      "UpstreamPathTemplate": "/self/{url}",
+      "UpstreamHttpMethod": [ "GET" ],
+    },
+    {
+      "DownstreamPathTemplate": "/api/{url}",
+      "DownstreamScheme": "http",
+      //"DownstreamHostAndPorts": [ //localhost
+      //  {
+      //    "Host": "localhost",
+      //    "Port": 3001
+      //  }
+      //],
+      "UpstreamPathTemplate": "/oc/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Delete" ], // empty for all
+      "ServiceName": "hotel-web-service", //consul service name
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    }
+  ],
   "GlobalConfiguration": {
     "ServiceDiscoveryProvider": {
       "Host": "localhost",

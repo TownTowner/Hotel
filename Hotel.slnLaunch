@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "新建配置文件",
+    "Projects": [
+      {
+        "Path": "Hotel\\Hotel.csproj",
+        "Action": "Start",
+        "DebugTarget": "Hotel"
+      },
+      {
+        "Path": "Hotel.Gateway\\Hotel.Gateway.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "http"
+      }
+    ]
+  }
+]

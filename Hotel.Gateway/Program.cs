@@ -13,6 +13,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddOcelot().AddConsul();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Logging.AddConsole();
+}
 
 var app = builder.Build();
 
@@ -25,10 +29,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
+app.UseRouting();
 
 app.MapControllers();
 
-app.UseOcelot().Wait();
+await app.UseOcelot();
 
 app.Run();
